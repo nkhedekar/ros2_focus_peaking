@@ -7,29 +7,71 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(OpenCV REQUIRED)
 
-add_executable(focus_peaking_viz src/focus_peaking_viz.cpp)
-target_include_directories(focus_peaking_viz PUBLIC
+add_library(focus_peaking_component SHARED
+  src/focus_peaking.cpp
+)
+target_include_directories(focus_peaking_component PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
-target_compile_features(focus_peaking_viz PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
-install(TARGETS focus_peaking_viz
-  DESTINATION lib/${PROJECT_NAME})
+target_include_directories(focus_peaking_component SYSTEM PUBLIC
+  ${OpenCV_INCLUDE_DIRS}
+)
+
+set(focus_peaking_dependencies
+  rclcpp
+  rclcpp_components
+  sensor_msgs
+  cv_bridge
+  image_transport
+)
+
+ament_target_dependencies(focus_peaking_component
+  ${focus_peaking_dependencies}
+)
+
+target_link_libraries(focus_peaking_component
+ ${OpenCV_LIBS}
+)
+
+rclcpp_components_register_node(
+  focus_peaking_component
+  PLUGIN "focus_peaking::FocusPeaking"
+  EXECUTABLE focus_peaking
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # comment the line when a copyright and license is added to all source files
-  set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # comment the line when this package is in a git repo and when
-  # a copyright and license is added to all source files
-  set(ament_cmake_cpplint_FOUND TRUE)
+  set(ament_cmake_uncrustify_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
+
+  # find_package(ament_cmake_gtest REQUIRED)
+  # add_subdirectory(test/gtests)
 endif()
+
+ament_export_targets(export_focus_peaking_component)
+install(TARGETS focus_peaking_component
+  EXPORT export_focus_peaking_component
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+# install(DIRECTORY
+#   config
+#   DESTINATION share/${PROJECT_NAME}/
+# )
 
 ament_package()
