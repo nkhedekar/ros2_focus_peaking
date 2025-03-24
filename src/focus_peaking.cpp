@@ -1,13 +1,18 @@
 #include "focus_peaking/focus_peaking.hpp"
 
 #include <cv_bridge/cv_bridge.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 
 namespace focus_peaking
 {
 FocusPeaking::FocusPeaking(const rclcpp::NodeOptions & options = rclcpp::NodeOptions())
-: Node("focus_peaking", options), it_(shared_from_this())
+: Node("focus_peaking", options), it_(shared_from_this()), viz_window_name_("FocusPeaking")
 {
   image_sub_ = it_.subscribe("/camera/image_raw", 1, &FocusPeaking::image_callback, this);
+
+  cv::namedWindow(viz_window_name_, cv::WINDOW_NORMAL);
 
   RCLCPP_INFO(get_logger(), "FocusPeaking initialized");
 }
@@ -16,13 +21,27 @@ void FocusPeaking::image_callback(const sensor_msgs::msg::Image::ConstSharedPtr 
 {
   RCLCPP_DEBUG(get_logger(), "Image received, processing...");
 
-  try {
-    cv::Mat image = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::BGR8)->image;
+  cv::Mat image = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::BGR8)->image;
 
-    // Process the image here
-  } catch (cv_bridge::Exception & e) {
-    RCLCPP_ERROR(get_logger(), "cv_bridge exception: %s", e.what());
-  }
+  // Convert to grayscale and detect edges
+  cv::Mat gray, edges;
+  cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
+  cv::Laplacian(gray, edges, CV_8U, 3);
+
+  // dilate edges for better visibility
+  cv::Mat kernel = cv::getStructuringElement(cv::MORPH_DILATE, cv::Size(3, 3));
+  cv::dilate(edges, edges, kernel);
+
+  // Create a red mask where edges are detected
+  cv::Mat red_edges = cv::Mat::zeros(image.size(), image.type());
+  red_edges.setTo(cv::Scalar(0, 0, 255), edges);  // Only red channel is updated
+
+  // Blend red edges with the original image
+  cv::Mat result;
+  cv::addWeighted(image, 1.0, red_edges, 1.0, 0, result);
+
+  cv::imshow(viz_window_name_, result);
+  cv::waitKey(1);
 }
 }  // namespace focus_peaking
 

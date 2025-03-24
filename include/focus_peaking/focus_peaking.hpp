@@ -17,6 +17,8 @@ public:
 private:
   image_transport::ImageTransport it_;
   image_transport::Subscriber image_sub_;
+
+  std::string viz_window_name_;
 };
 }  // namespace focus_peaking
 
