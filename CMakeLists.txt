@@ -42,7 +42,7 @@ target_link_libraries(focus_peaking_component
 rclcpp_components_register_node(
   focus_peaking_component
   PLUGIN "focus_peaking::FocusPeaking"
-  EXECUTABLE focus_peaking
+  EXECUTABLE focus_peaking_node
 )
 
 if(BUILD_TESTING)
