@@ -28,7 +28,8 @@ void FocusPeaking::image_callback(const sensor_msgs::msg::Image::ConstSharedPtr 
   // Convert to grayscale and detect edges
   cv::Mat gray, edges;
   cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
-  cv::Laplacian(gray, edges, CV_8U, 3);
+  cv::GaussianBlur(gray, gray, cv::Size(3, 3), 0);
+  cv::Canny(gray, edges, 50, 150);
 
   // dilate edges for better visibility
   cv::Mat kernel = cv::getStructuringElement(cv::MORPH_DILATE, cv::Size(3, 3));
