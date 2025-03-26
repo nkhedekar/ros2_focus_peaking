@@ -8,9 +8,11 @@
 namespace focus_peaking
 {
 FocusPeaking::FocusPeaking(const rclcpp::NodeOptions & options = rclcpp::NodeOptions())
-: Node("focus_peaking", options), it_(shared_from_this()), viz_window_name_("FocusPeaking")
+: Node("focus_peaking", options), viz_window_name_("FocusPeaking")
 {
-  image_sub_ = it_.subscribe("/camera/image_raw", 1, &FocusPeaking::image_callback, this);
+  image_sub_ = create_subscription<sensor_msgs::msg::Image>(
+    "/image_raw", 5,
+    [&](const sensor_msgs::msg::Image::ConstSharedPtr & msg) { image_callback(msg); });
 
   cv::namedWindow(viz_window_name_, cv::WINDOW_NORMAL);
 

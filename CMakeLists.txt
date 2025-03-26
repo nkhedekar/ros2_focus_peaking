@@ -11,7 +11,6 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
-find_package(image_transport REQUIRED)
 find_package(OpenCV REQUIRED)
 
 add_library(focus_peaking_component SHARED
@@ -30,7 +29,6 @@ set(focus_peaking_dependencies
   rclcpp_components
   sensor_msgs
   cv_bridge
-  image_transport
 )
 
 ament_target_dependencies(focus_peaking_component
