@@ -7,9 +7,35 @@
 
 namespace focus_peaking
 {
+
+rcl_interfaces::msg::ParameterDescriptor create_param_descriptor(
+  const std::string & description, const rclcpp::ParameterType & param_type)
+{
+  rcl_interfaces::msg::ParameterDescriptor descriptor;
+  descriptor.description = description;
+
+  descriptor.type = static_cast<uint8_t>(param_type);
+
+  return descriptor;
+}
+
 FocusPeaking::FocusPeaking(const rclcpp::NodeOptions & options = rclcpp::NodeOptions())
 : Node("focus_peaking", options), viz_window_name_("FocusPeaking")
 {
+  declare_parameter(
+    "denoising_kernel_size", 3,
+    create_param_descriptor(
+      "Size of gaussian blur kernel used for denoising image before edge detection",
+      rclcpp::ParameterType::PARAMETER_INTEGER));
+
+  declare_parameter(
+    "edge_dilation_kernel_size", 3,
+    create_param_descriptor(
+      "Size of kernel used to dilate detected edges", rclcpp::ParameterType::PARAMETER_INTEGER));
+
+  denoising_kernel_size_ = get_parameter("denoising_kernel_size").as_int();
+  edge_dilation_kernel_size_ = get_parameter("edge_dilation_kernel_size").as_int();
+
   image_sub_ = create_subscription<sensor_msgs::msg::Image>(
     "/image_raw", 5,
     [&](const sensor_msgs::msg::Image::ConstSharedPtr & msg) { image_callback(msg); });
@@ -28,11 +54,12 @@ void FocusPeaking::image_callback(const sensor_msgs::msg::Image::ConstSharedPtr 
   // Convert to grayscale and detect edges
   cv::Mat gray, edges;
   cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
-  cv::GaussianBlur(gray, gray, cv::Size(3, 3), 0);
+  cv::GaussianBlur(gray, gray, cv::Size(denoising_kernel_size_, denoising_kernel_size_), 0);
   cv::Canny(gray, edges, 50, 150);
 
   // dilate edges for better visibility
-  cv::Mat kernel = cv::getStructuringElement(cv::MORPH_DILATE, cv::Size(3, 3));
+  cv::Mat kernel = cv::getStructuringElement(
+    cv::MORPH_DILATE, cv::Size(edge_dilation_kernel_size_, edge_dilation_kernel_size_));
   cv::dilate(edges, edges, kernel);
 
   // Create a red mask where edges are detected

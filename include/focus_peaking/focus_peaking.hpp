@@ -17,6 +17,8 @@ private:
   std::shared_ptr<rclcpp::Subscription<sensor_msgs::msg::Image>> image_sub_;
 
   std::string viz_window_name_;
+  int64_t denoising_kernel_size_;
+  int64_t edge_dilation_kernel_size_;
 };
 }  // namespace focus_peaking
 
