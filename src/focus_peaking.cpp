@@ -41,6 +41,7 @@ FocusPeaking::FocusPeaking(const rclcpp::NodeOptions & options = rclcpp::NodeOpt
     [&](const sensor_msgs::msg::Image::ConstSharedPtr & msg) { image_callback(msg); });
 
   cv::namedWindow(viz_window_name_, cv::WINDOW_NORMAL);
+  cv::resizeWindow("FocusPeaking", 800, 600);  // Set the window size to 800x600
 
   RCLCPP_INFO(get_logger(), "FocusPeaking initialized");
 }
