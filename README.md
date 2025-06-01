@@ -43,15 +43,15 @@ ros2 launch focus_peaking focus_peaking.launch.py
 
 Launch demo with builtin laptop webcam.
 
-- install ros2 v4l2-camera package
+- install ros2 usb_cam [drivers](https://github.com/ros-drivers/usb_cam)
 ```bash
 sudo apt update
-sudo apt install ros-${ROS_DISTRO}-v4l2-camera
+sudo apt install ros-${ROS_DISTRO}-usb-cam
 ```
-- launch the camera
+- launch the demo
 ```bash
 # from ros2_ws
 source install/setup.bash
-ros2 run v4l2_camera v4l2_camera_node
+ros2 launch focus_peaking focus_peaking_demo.launch.py
 ```
-- make sure the published topic of v4l2_camera matches that of the focus_peaking node (/image_raw).
+

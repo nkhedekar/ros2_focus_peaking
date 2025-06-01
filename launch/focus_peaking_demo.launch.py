@@ -15,8 +15,8 @@ def generate_launch_description():
             ]
         ),
         Node(
-            package='v4l2_camera',
-            executable='v4l2_camera_node',
+            package='usb_cam',
+            executable='usb_cam_node_exe',
             name='webcam',
             parameters=[
                 {"video_device": "/dev/video0"}
