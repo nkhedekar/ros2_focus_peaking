@@ -27,7 +27,7 @@ FocusPeaking::FocusPeaking(const rclcpp::NodeOptions & options)
   denoising_kernel_size_(3),
   edge_dilation_kernel_size_(3),
   widget_enabled_(true),
-  widget_width_ratio_(0.015),
+  widget_width_ratio_(0.04),
   focus_history_size_(200)
 {
   RCLCPP_INFO(get_logger(), "Initializing FocusPeaking node...");
