@@ -48,7 +48,7 @@ void FocusWidget::draw(cv::Mat & display_image)
   // Calculate the inner widget rectangle (centered in the white background)
   int inner_margin = 0.25 * widget_bg_width;  // Margin around the inner widget
   int inner_width = widget_bg_width - 2 * inner_margin;
-  int inner_height = img_h - 2 * inner_margin;
+  int inner_height = img_h - 6 * inner_margin;
 
   // Ensure minimum dimensions for the inner widget
   inner_width = std::max(20, inner_width);
@@ -62,20 +62,20 @@ void FocusWidget::draw(cv::Mat & display_image)
   cv::Point inner_br(inner_x + inner_width, inner_y + inner_height);
   cv::Rect inner_rect(inner_tl, inner_br);
 
-  // Draw the inner widget rectangle with black border
-  cv::rectangle(display_image, inner_rect, cv::Scalar(0, 0, 0), 3);
+  // Draw circle indicators OUTSIDE the inner rectangle
+  int circle_radius = std::min(15, widget_bg_width / 8);
 
-  // Draw circle indicators
-  int circle_radius = std::min(15, inner_width / 4);
-  int circle_margin = 0.3 * widget_bg_width;  // Distance from top/bottom edges
-
-  // focused green circle
-  cv::Point sharp_center(inner_x + inner_width / 2, inner_y + circle_margin);
+  // Sharp circle above the inner rectangle
+  cv::Point sharp_center(bg_tl.x + widget_bg_width / 2, inner_y - inner_margin - circle_radius);
   cv::circle(display_image, sharp_center, circle_radius, cv::Scalar(0, 255, 0), cv::FILLED);
 
-  // unfocused red circle
-  cv::Point blur_center(inner_x + inner_width / 2, inner_y + inner_height - circle_margin);
+  // Blur circle below the inner rectangle
+  cv::Point blur_center(
+    bg_tl.x + widget_bg_width / 2, inner_y + inner_height + inner_margin + circle_radius);
   cv::circle(display_image, blur_center, circle_radius, cv::Scalar(0, 0, 255), cv::FILLED);
+
+  // Draw the inner widget rectangle with black border
+  cv::rectangle(display_image, inner_rect, cv::Scalar(0, 0, 0), 3);
 
   // Draw the red focus indicator line inside the inner rectangle
   if (!scores_history_.empty()) {
@@ -86,11 +86,8 @@ void FocusWidget::draw(cv::Mat & display_image)
       double normalized_score = (current_score - min_score_) / (max_score_ - min_score_);
       normalized_score = std::max(0.0, std::min(1.0, normalized_score));
 
-      // Y-coordinate for the line: top area (near sharp circle) for score=1.0, bottom area (near blur circle) for score=0.0
-      // Adjust the range to avoid overlapping with circles
-      int usable_height = inner_height - 2 * (circle_margin + circle_radius + 10);
-      int line_start_y = inner_y + circle_margin + circle_radius + 10;
-      int line_y = line_start_y + static_cast<int>((1.0 - normalized_score) * usable_height);
+      // Y-coordinate for the line: top of inner rectangle for score=1.0, bottom for score=0.0
+      int line_y = inner_tl.y + static_cast<int>((1.0 - normalized_score) * inner_height);
 
       // Draw red line across the width of the inner widget
       cv::line(
