@@ -4,12 +4,9 @@
 
 namespace focus_peaking
 {
-FocusWidget::FocusWidget(
-  double width_ratio, double height_ratio, int margin_px, size_t history_size)
-: width_ratio_(width_ratio),
-  height_ratio_(height_ratio),
-  margin_px_(margin_px),
-  history_size_(history_size)
+
+FocusWidget::FocusWidget(double width_ratio, size_t history_size)
+: width_ratio_(width_ratio), history_size_(history_size)
 {
 }
 
@@ -24,6 +21,7 @@ void FocusWidget::update(double score)
 }
 
 double FocusWidget::get_min_score() { return min_score_; }
+
 double FocusWidget::get_max_score() { return max_score_; }
 
 void FocusWidget::draw(cv::Mat & display_image)
@@ -31,46 +29,68 @@ void FocusWidget::draw(cv::Mat & display_image)
   int img_h = display_image.rows;
   int img_w = display_image.cols;
 
-  // Calculate actual widget dimensions based on ratios
-  int actual_w_px = static_cast<int>(img_w * width_ratio_);
-  int actual_h_px = static_cast<int>(img_h * height_ratio_);
+  // Widget background dimensions: width_px wide, full image height
+  int widget_bg_width = static_cast<int>(width_ratio_ * img_w);
+  int widget_bg_height = img_h;
 
-  // Ensure minimum dimensions for visibility
-  actual_w_px = std::max(10, actual_w_px);
-  actual_h_px = std::max(20, actual_h_px);
+  // Ensure minimum width for visibility
+  widget_bg_width = std::max(50, widget_bg_width);
 
-  // Top-right corner for the widgets background
-  cv::Point tl(img_w - actual_w_px - margin_px_, margin_px_);
-  cv::Point br(img_w - margin_px_, margin_px_ + actual_h_px);
-  cv::Rect bg_rect(tl, br);
+  // Position the white background on the right side of the image
+  cv::Point bg_tl(img_w - widget_bg_width, 0);
+  cv::Point bg_br(img_w, img_h);
+  cv::Rect bg_rect(bg_tl, bg_br);
 
-  // white background
+  // Draw white background
   cv::rectangle(display_image, bg_rect, cv::Scalar(255, 255, 255), cv::FILLED);
-  // black border
-  cv::rectangle(display_image, bg_rect, cv::Scalar(0, 0, 0), 2);
+  cv::rectangle(display_image, bg_rect, cv::Scalar(0, 0, 0), 3);
 
-  double current_score = scores_history_.back();
+  // Calculate the inner widget rectangle (centered in the white background)
+  int inner_margin = 0.25 * widget_bg_width;  // Margin around the inner widget
+  int inner_width = widget_bg_width - 2 * inner_margin;
+  int inner_height = img_h - 2 * inner_margin;
 
-  // Draw the red focus indicator line
-  if (
-    max_score_ > min_score_ &&
-    (max_score_ - min_score_) > 1e-6) {  // Avoid division by zero or tiny differences
-    double normalized_score = (current_score - min_score_) / (max_score_ - min_score_);
-    normalized_score = std::max(0.0, std::min(1.0, normalized_score));  // Clamp to [0, 1]
+  // Ensure minimum dimensions for the inner widget
+  inner_width = std::max(20, inner_width);
+  inner_height = std::max(40, inner_height);
 
-    // Y-coordinate for the line: top of widget for score=1.0, bottom for score=0.0
-    int line_y = tl.y + static_cast<int>((1.0 - normalized_score) * actual_h_px);
+  // Center the inner widget in the white background
+  int inner_x = bg_tl.x + (widget_bg_width - inner_width) / 2;
+  int inner_y = bg_tl.y + (widget_bg_height - inner_height) / 2;
 
-    cv::line(
-      display_image, cv::Point(tl.x, line_y), cv::Point(br.x, line_y), cv::Scalar(0, 0, 255),
-      3);  // Red line
-  } else {
-    // If min_score_ is very close to max_score_ (e.g., first few frames, static scene, or history_size=1)
-    // Draw line in the middle with a different color (e.g., gray) to indicate neutral/undetermined
-    int line_y = tl.y + actual_h_px / 2;
-    cv::line(
-      display_image, cv::Point(tl.x, line_y), cv::Point(br.x, line_y), cv::Scalar(128, 128, 128),
-      2);  // Gray line
+  cv::Point inner_tl(inner_x, inner_y);
+  cv::Point inner_br(inner_x + inner_width, inner_y + inner_height);
+  cv::Rect inner_rect(inner_tl, inner_br);
+
+  // Draw the inner widget rectangle with black border
+  cv::rectangle(display_image, inner_rect, cv::Scalar(0, 0, 0), 3);
+
+  // Draw the red focus indicator line inside the inner rectangle
+  if (!scores_history_.empty()) {
+    double current_score = scores_history_.back();
+
+    if (max_score_ > min_score_ && (max_score_ - min_score_) > 1e-6) {
+      // Normalize score to [0, 1]
+      double normalized_score = (current_score - min_score_) / (max_score_ - min_score_);
+      normalized_score = std::max(0.0, std::min(1.0, normalized_score));
+
+      // Y-coordinate for the line: top of inner widget for score=1.0, bottom for score=0.0
+      int line_y = inner_tl.y + static_cast<int>((1.0 - normalized_score) * inner_height);
+
+      // Draw red line across the width of the inner widget
+      cv::line(
+        display_image, cv::Point(inner_tl.x, line_y), cv::Point(inner_br.x, line_y),
+        cv::Scalar(0, 0, 255),
+        5);  // Red line
+    } else {
+      // If min_score_ is very close to max_score_, draw gray line in the middle
+      int line_y = inner_tl.y + inner_height / 2;
+      cv::line(
+        display_image, cv::Point(inner_tl.x, line_y), cv::Point(inner_br.x, line_y),
+        cv::Scalar(128, 128, 128),
+        5);  // Gray line
+    }
   }
 }
+
 }  // namespace focus_peaking

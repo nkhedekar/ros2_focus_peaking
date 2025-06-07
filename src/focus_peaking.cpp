@@ -93,8 +93,7 @@ FocusPeaking::FocusPeaking(const rclcpp::NodeOptions & options)
   RCLCPP_INFO(get_logger(), "widget_margin_px: %d", widget_margin_px_);
   RCLCPP_INFO(get_logger(), "focus_history_size: %ld", focus_history_size_);
 
-  focus_widget_ = std::make_unique<FocusWidget>(
-    widget_width_ratio_, widget_height_ratio_, widget_margin_px_, focus_history_size_);
+  focus_widget_ = std::make_unique<FocusWidget>(widget_width_ratio_, focus_history_size_);
 
   image_sub_ = create_subscription<sensor_msgs::msg::Image>(
     "/image_raw", 5,

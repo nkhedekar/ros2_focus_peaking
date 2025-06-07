@@ -9,7 +9,7 @@ namespace focus_peaking
 class FocusWidget
 {
 public:
-  FocusWidget(double width_ratio, double height_ratio, int margin_px, size_t history_size);
+  FocusWidget(double width_ratio, size_t history_size);
   ~FocusWidget() = default;
 
   void update(double score);
@@ -19,8 +19,6 @@ public:
 
 private:
   double width_ratio_;
-  double height_ratio_;
-  int margin_px_;
   size_t history_size_;
   std::deque<double> scores_history_;
   double min_score_;
