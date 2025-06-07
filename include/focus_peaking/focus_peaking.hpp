@@ -27,8 +27,6 @@ private:
   int64_t edge_dilation_kernel_size_;
   bool widget_enabled_;
   double widget_width_ratio_;
-  double widget_height_ratio_;
-  int widget_margin_px_;
   size_t focus_history_size_;
   std::unique_ptr<FocusWidget> focus_widget_;
 };

@@ -28,8 +28,6 @@ FocusPeaking::FocusPeaking(const rclcpp::NodeOptions & options)
   edge_dilation_kernel_size_(3),
   widget_enabled_(true),
   widget_width_ratio_(0.015),
-  widget_height_ratio_(0.2),
-  widget_margin_px_(20),
   focus_history_size_(200)
 {
   RCLCPP_INFO(get_logger(), "Initializing FocusPeaking node...");
@@ -56,18 +54,6 @@ FocusPeaking::FocusPeaking(const rclcpp::NodeOptions & options)
       "Widget width as a ratio of image width (0.0 to 1.0)",
       rclcpp::ParameterType::PARAMETER_DOUBLE));
 
-  declare_parameter(
-    "widget_height_ratio", widget_height_ratio_,
-    create_param_descriptor(
-      "Widget height as a ratio of image height (0.0 to 1.0)",
-      rclcpp::ParameterType::PARAMETER_DOUBLE));
-
-  declare_parameter(
-    "widget_margin_px", widget_margin_px_,
-    create_param_descriptor(
-      "Widget margin from image border in pixels. Must be non-negative.",
-      rclcpp::ParameterType::PARAMETER_INTEGER));
-
   // For focus_history_size, ROS parameter system uses int64, while member is size_t
   // So we declare with an int representation of the default.
   declare_parameter(
@@ -80,8 +66,6 @@ FocusPeaking::FocusPeaking(const rclcpp::NodeOptions & options)
   edge_dilation_kernel_size_ = get_parameter("edge_dilation_kernel_size").as_int();
   widget_enabled_ = get_parameter("widget_enabled").as_bool();
   widget_width_ratio_ = get_parameter("widget_width_ratio").as_double();
-  widget_height_ratio_ = get_parameter("widget_height_ratio").as_double();
-  widget_margin_px_ = get_parameter("widget_margin_px").as_int();
   focus_history_size_ = get_parameter("focus_history_size").as_int();
 
   // LOG all parameter values
@@ -89,8 +73,6 @@ FocusPeaking::FocusPeaking(const rclcpp::NodeOptions & options)
   RCLCPP_INFO(get_logger(), "edge_dilation_kernel_size: %ld", edge_dilation_kernel_size_);
   RCLCPP_INFO(get_logger(), "widget_enabled: %s", widget_enabled_ ? "true" : "false");
   RCLCPP_INFO(get_logger(), "widget_width_ratio: %lf", widget_width_ratio_);
-  RCLCPP_INFO(get_logger(), "widget_height_ratio: %lf", widget_height_ratio_);
-  RCLCPP_INFO(get_logger(), "widget_margin_px: %d", widget_margin_px_);
   RCLCPP_INFO(get_logger(), "focus_history_size: %ld", focus_history_size_);
 
   focus_widget_ = std::make_unique<FocusWidget>(widget_width_ratio_, focus_history_size_);
