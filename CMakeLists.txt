@@ -15,6 +15,7 @@ find_package(OpenCV REQUIRED)
 
 add_library(focus_peaking_component SHARED
   src/focus_peaking.cpp
+  src/focus_widget.cpp
 )
 target_include_directories(focus_peaking_component PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
