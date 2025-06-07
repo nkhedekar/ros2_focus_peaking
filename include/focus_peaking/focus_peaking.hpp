@@ -1,9 +1,12 @@
 #ifndef FOCUS_PEAKING__FOCUS_PEAKING_HPP_
 #define FOCUS_PEAKING__FOCUS_PEAKING_HPP_
 
+#include <memory>
 #include <opencv2/core/mat.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
+
+#include "focus_peaking/focus_widget.hpp"
 
 namespace focus_peaking
 {
@@ -16,9 +19,6 @@ public:
 
   double calculate_focus_score(const cv::Mat & gray_image);
 
-  void draw_focus_widget(
-    cv::Mat & display_image, double current_score, double min_hist_score, double max_hist_score);
-
 private:
   std::shared_ptr<rclcpp::Subscription<sensor_msgs::msg::Image>> image_sub_;
 
@@ -30,7 +30,7 @@ private:
   double widget_height_ratio_;
   int widget_margin_px_;
   size_t focus_history_size_;
-  std::deque<double> focus_scores_history_;
+  std::unique_ptr<FocusWidget> focus_widget_;
 };
 }  // namespace focus_peaking
 
