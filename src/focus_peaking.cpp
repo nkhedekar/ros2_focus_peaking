@@ -122,28 +122,24 @@ void FocusPeaking::image_callback(const sensor_msgs::msg::Image::ConstSharedPtr 
 {
   RCLCPP_DEBUG(get_logger(), "Image received, processing...");
 
-  cv_bridge::CvImagePtr cv_ptr;
+  cv_bridge::CvImageConstPtr cv_ptr;
   try {
-    // Use toCvCopy to get a modifiable image if you draw directly on 'image'
-    // or toCvShare if you only read from it before creating result_display_img
-    cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+    cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::BGR8);
   } catch (cv_bridge::Exception & e) {
     RCLCPP_ERROR(get_logger(), "cv_bridge exception: %s", e.what());
     return;
   }
   cv::Mat image = cv_ptr->image;
-  cv::Mat result_display_img = image.clone();  // Work on a copy for drawing
+  cv::Mat result_display_img = image.clone();
 
   // --- Focus Peaking Visualization (Canny edges) ---
   cv::Mat gray_for_peaking, edges_for_peaking;
   cv::cvtColor(image, gray_for_peaking, cv::COLOR_BGR2GRAY);
-  // Denoising for Canny
   cv::GaussianBlur(
     gray_for_peaking, gray_for_peaking, cv::Size(denoising_kernel_size_, denoising_kernel_size_),
     0);
   cv::Mat focus_widget_input = gray_for_peaking.clone();
-  cv::Canny(
-    gray_for_peaking, edges_for_peaking, 50, 150);  // Keep Canny thresholds or make them params
+  cv::Canny(gray_for_peaking, edges_for_peaking, 50, 150);
 
   cv::Mat dilation_kernel = cv::getStructuringElement(
     cv::MORPH_DILATE, cv::Size(edge_dilation_kernel_size_, edge_dilation_kernel_size_));
@@ -153,7 +149,7 @@ void FocusPeaking::image_callback(const sensor_msgs::msg::Image::ConstSharedPtr 
   red_highlight.setTo(cv::Scalar(0, 0, 255), edges_for_peaking);
   cv::addWeighted(result_display_img, 1.0, red_highlight, 1.0, 0, result_display_img);
 
-  // --- Focus Widget Logic (Laplacian Variance) ---
+  // --- Focus Widget Logic ---
   if (widget_enabled_) {
     double current_focus_score = calculate_focus_score(focus_widget_input);
 
@@ -162,7 +158,6 @@ void FocusPeaking::image_callback(const sensor_msgs::msg::Image::ConstSharedPtr 
     double min_hist_score = focus_widget_->get_min_score();
     double max_hist_score = focus_widget_->get_max_score();
 
-    // For debugging:
     RCLCPP_INFO(
       get_logger(), "Focus Score: %.2f (Min: %.2f, Max: %.2f)", current_focus_score, min_hist_score,
       max_hist_score);
