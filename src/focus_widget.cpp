@@ -65,6 +65,18 @@ void FocusWidget::draw(cv::Mat & display_image)
   // Draw the inner widget rectangle with black border
   cv::rectangle(display_image, inner_rect, cv::Scalar(0, 0, 0), 3);
 
+  // Draw circle indicators
+  int circle_radius = std::min(15, inner_width / 4);
+  int circle_margin = 0.3 * widget_bg_width;  // Distance from top/bottom edges
+
+  // focused green circle
+  cv::Point sharp_center(inner_x + inner_width / 2, inner_y + circle_margin);
+  cv::circle(display_image, sharp_center, circle_radius, cv::Scalar(0, 255, 0), cv::FILLED);
+
+  // unfocused red circle
+  cv::Point blur_center(inner_x + inner_width / 2, inner_y + inner_height - circle_margin);
+  cv::circle(display_image, blur_center, circle_radius, cv::Scalar(0, 0, 255), cv::FILLED);
+
   // Draw the red focus indicator line inside the inner rectangle
   if (!scores_history_.empty()) {
     double current_score = scores_history_.back();
@@ -74,21 +86,24 @@ void FocusWidget::draw(cv::Mat & display_image)
       double normalized_score = (current_score - min_score_) / (max_score_ - min_score_);
       normalized_score = std::max(0.0, std::min(1.0, normalized_score));
 
-      // Y-coordinate for the line: top of inner widget for score=1.0, bottom for score=0.0
-      int line_y = inner_tl.y + static_cast<int>((1.0 - normalized_score) * inner_height);
+      // Y-coordinate for the line: top area (near sharp circle) for score=1.0, bottom area (near blur circle) for score=0.0
+      // Adjust the range to avoid overlapping with circles
+      int usable_height = inner_height - 2 * (circle_margin + circle_radius + 10);
+      int line_start_y = inner_y + circle_margin + circle_radius + 10;
+      int line_y = line_start_y + static_cast<int>((1.0 - normalized_score) * usable_height);
 
       // Draw red line across the width of the inner widget
       cv::line(
-        display_image, cv::Point(inner_tl.x, line_y), cv::Point(inner_br.x, line_y),
+        display_image, cv::Point(inner_tl.x + 5, line_y), cv::Point(inner_br.x - 5, line_y),
         cv::Scalar(0, 0, 255),
-        5);  // Red line
+        3);  // Red line
     } else {
       // If min_score_ is very close to max_score_, draw gray line in the middle
       int line_y = inner_tl.y + inner_height / 2;
       cv::line(
-        display_image, cv::Point(inner_tl.x, line_y), cv::Point(inner_br.x, line_y),
+        display_image, cv::Point(inner_tl.x + 5, line_y), cv::Point(inner_br.x - 5, line_y),
         cv::Scalar(128, 128, 128),
-        5);  // Gray line
+        2);  // Gray line
     }
   }
 }
