@@ -1,6 +1,6 @@
-#include "focus_peaking/focus_peaking.hpp"  // Or your actual header file
+#include "focus_peaking/focus_peaking.hpp"
 
-#include <algorithm>  // For std::min_element, std::max_element, std::min, std::max
+#include <algorithm>
 #include <cv_bridge/cv_bridge.hpp>
 #include <deque>
 #include <opencv2/core.hpp>
@@ -11,7 +11,6 @@
 namespace focus_peaking
 {
 
-// (create_param_descriptor function remains the same)
 rcl_interfaces::msg::ParameterDescriptor create_param_descriptor(
   const std::string & description, const rclcpp::ParameterType & param_type)
 {
@@ -54,8 +53,6 @@ FocusPeaking::FocusPeaking(const rclcpp::NodeOptions & options)
       "Widget width as a ratio of image width (0.0 to 1.0)",
       rclcpp::ParameterType::PARAMETER_DOUBLE));
 
-  // For focus_history_size, ROS parameter system uses int64, while member is size_t
-  // So we declare with an int representation of the default.
   declare_parameter(
     "focus_history_size", static_cast<int64_t>(focus_history_size_),
     create_param_descriptor(
@@ -68,7 +65,6 @@ FocusPeaking::FocusPeaking(const rclcpp::NodeOptions & options)
   widget_width_ratio_ = get_parameter("widget_width_ratio").as_double();
   focus_history_size_ = get_parameter("focus_history_size").as_int();
 
-  // LOG all parameter values
   RCLCPP_INFO(get_logger(), "denoising_kernel_size: %ld", denoising_kernel_size_);
   RCLCPP_INFO(get_logger(), "edge_dilation_kernel_size: %ld", edge_dilation_kernel_size_);
   RCLCPP_INFO(get_logger(), "widget_enabled: %s", widget_enabled_ ? "true" : "false");
