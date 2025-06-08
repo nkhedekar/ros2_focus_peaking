@@ -11,6 +11,7 @@ private:
   cv::Point start_point_, end_point_;
   bool drawing_ = false;
   bool roi_complete_ = false;
+  int min_roi_size_ = 5;
   cv::Rect current_roi_;
   std::string window_name_;
   std::function<void(const cv::Rect &)> roi_callback_;
@@ -26,7 +27,7 @@ public:
     selector->handle_mouse(event, x, y, flags);
   }
 
-  void register_roi_callback(std::function<void(const cv::Rect &)> callback)
+  void register_roi_callback(std::function<void(const cv::Rect &)> && callback)
   {
     roi_callback_ = std::move(callback);
   }
@@ -52,14 +53,13 @@ public:
           drawing_ = false;
           end_point_ = cv::Point(x, y);
 
-          // Create ROI rectangle
           current_roi_ = cv::Rect(
             std::min(start_point_.x, end_point_.x), std::min(start_point_.y, end_point_.y),
             std::abs(end_point_.x - start_point_.x), std::abs(end_point_.y - start_point_.y));
 
-          if (current_roi_.width > 5 && current_roi_.height > 5) {
+          if (current_roi_.width > min_roi_size_ && current_roi_.height > min_roi_size_) {
             roi_complete_ = true;
-            roi_callback_(current_roi_);
+            if (roi_callback_) roi_callback_(current_roi_);
           }
         }
         break;
@@ -79,7 +79,7 @@ public:
 
   std::optional<cv::Rect> get_roi()
   {
-    if (roi_complete_) {
+    if (!current_roi_.empty()) {
       return current_roi_;
     } else {
       return std::nullopt;
@@ -92,4 +92,6 @@ public:
     roi_complete_ = false;
     current_roi_ = cv::Rect();
   }
+
+  void clear_roi_callback() { roi_callback_ = nullptr; }
 };
