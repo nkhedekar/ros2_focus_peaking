@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include <opencv2/opencv.hpp>
 #include <optional>
 #include <string>
@@ -12,6 +13,7 @@ private:
   bool roi_complete_ = false;
   cv::Rect current_roi_;
   std::string window_name_;
+  std::function<void(const cv::Rect &)> roi_callback_;
 
 public:
   ROISelector(const std::string & win_name) : window_name_(win_name) {}
@@ -22,6 +24,11 @@ public:
   {
     ROISelector * selector = static_cast<ROISelector *>(userdata);
     selector->handle_mouse(event, x, y, flags);
+  }
+
+  void register_roi_callback(std::function<void(const cv::Rect &)> callback)
+  {
+    roi_callback_ = std::move(callback);
   }
 
   void handle_mouse(int event, int x, int y, int /*flags*/)
@@ -52,6 +59,7 @@ public:
 
           if (current_roi_.width > 5 && current_roi_.height > 5) {
             roi_complete_ = true;
+            roi_callback_(current_roi_);
           }
         }
         break;
@@ -72,7 +80,6 @@ public:
   std::optional<cv::Rect> get_roi()
   {
     if (roi_complete_) {
-      roi_complete_ = false;
       return current_roi_;
     } else {
       return std::nullopt;
