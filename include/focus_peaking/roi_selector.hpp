@@ -6,75 +6,75 @@
 class ROISelector
 {
 private:
-  cv::Point start_point, end_point;
-  bool drawing = false;
-  bool roi_complete = false;
-  cv::Rect current_roi;
-  std::string window_name;
+  cv::Point start_point_, end_point_;
+  bool drawing_ = false;
+  bool roi_complete_ = false;
+  cv::Rect current_roi_;
+  std::string window_name_;
 
 public:
-  ROISelector(const std::string & win_name) : window_name(win_name) {}
+  ROISelector(const std::string & win_name) : window_name_(win_name) {}
 
-  void set_mouse_callback() { cv::setMouseCallback(window_name, mouseCallback, this); }
+  void set_mouse_callback() { cv::setMouseCallback(window_name_, mouse_callback, this); }
 
-  static void mouseCallback(int event, int x, int y, int flags, void * userdata)
+  static void mouse_callback(int event, int x, int y, int flags, void * userdata)
   {
     ROISelector * selector = static_cast<ROISelector *>(userdata);
-    selector->handleMouse(event, x, y, flags);
+    selector->handle_mouse(event, x, y, flags);
   }
 
-  void handleMouse(int event, int x, int y, int /*flags*/)
+  void handle_mouse(int event, int x, int y, int /*flags*/)
   {
     switch (event) {
       case cv::EVENT_LBUTTONDOWN:
-        drawing = true;
-        roi_complete = false;
-        start_point = cv::Point(x, y);
-        end_point = cv::Point(x, y);
+        drawing_ = true;
+        roi_complete_ = false;
+        start_point_ = cv::Point(x, y);
+        end_point_ = cv::Point(x, y);
         break;
 
       case cv::EVENT_MOUSEMOVE:
-        if (drawing) {
-          end_point = cv::Point(x, y);
+        if (drawing_) {
+          end_point_ = cv::Point(x, y);
         }
         break;
 
       case cv::EVENT_LBUTTONUP:
-        if (drawing) {
-          drawing = false;
-          end_point = cv::Point(x, y);
+        if (drawing_) {
+          drawing_ = false;
+          end_point_ = cv::Point(x, y);
 
           // Create ROI rectangle
-          current_roi = cv::Rect(
-            std::min(start_point.x, end_point.x), std::min(start_point.y, end_point.y),
-            std::abs(end_point.x - start_point.x), std::abs(end_point.y - start_point.y));
+          current_roi_ = cv::Rect(
+            std::min(start_point_.x, end_point_.x), std::min(start_point_.y, end_point_.y),
+            std::abs(end_point_.x - start_point_.x), std::abs(end_point_.y - start_point_.y));
 
-          if (current_roi.width > 5 && current_roi.height > 5) {
-            roi_complete = true;
+          if (current_roi_.width > 5 && current_roi_.height > 5) {
+            roi_complete_ = true;
           }
         }
         break;
     }
   }
 
-  void drawROI(cv::Mat & image)
+  void draw(cv::Mat & image)
   {
-    if (drawing) {
+    if (drawing_) {
       // Draw current selection
-      cv::rectangle(image, start_point, end_point, cv::Scalar(0, 255, 0), 2);
-    } else if (roi_complete) {
+      cv::rectangle(image, start_point_, end_point_, cv::Scalar(255, 0, 0), 2);
+    } else if (roi_complete_) {
       // Draw completed ROI
-      cv::rectangle(image, current_roi, cv::Scalar(0, 0, 255), 2);
+      cv::rectangle(image, current_roi_, cv::Scalar(0, 255, 0), 2);
     }
   }
 
-  bool isROIComplete() { return roi_complete; }
+  bool is_roi_complete() { return roi_complete_; }
 
-  cv::Rect getROI() { return current_roi; }
+  cv::Rect get_roi() { return current_roi_; }
 
   void reset()
   {
-    drawing = false;
-    roi_complete = false;
+    drawing_ = false;
+    roi_complete_ = false;
   }
 };
