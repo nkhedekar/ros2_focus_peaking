@@ -83,6 +83,12 @@ FocusPeaking::FocusPeaking(const rclcpp::NodeOptions & options)
   cv::resizeWindow(viz_window_name_, 800, 600);
   roi_selector_.set_mouse_callback();
 
+  roi_selector_.register_roi_callback([&](const cv::Rect & roi) {
+    roi_ = roi;
+    focus_widget_->reset();
+    RCLCPP_INFO(get_logger(), "New ROI selected");
+  });
+
   RCLCPP_INFO(get_logger(), "FocusPeaking initialized");
 }
 
@@ -131,12 +137,6 @@ void FocusPeaking::image_callback(const sensor_msgs::msg::Image::ConstSharedPtr 
 
   // --- Focus Widget Logic ---
   if (widget_enabled_) {
-    auto new_roi = roi_selector_.get_roi();
-    if (new_roi.has_value()) {
-      roi_ = new_roi.value();
-      focus_widget_->reset();
-      RCLCPP_INFO(get_logger(), "New ROI selected");
-    }
     if (roi_.has_value()) {
       auto & roi = roi_.value();
       focus_widget_input = focus_widget_input(roi);
