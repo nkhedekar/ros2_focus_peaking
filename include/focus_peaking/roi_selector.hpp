@@ -1,5 +1,6 @@
 #pragma once
 #include <opencv2/opencv.hpp>
+#include <optional>
 #include <string>
 #include <thread>
 
@@ -60,21 +61,28 @@ public:
   void draw(cv::Mat & image)
   {
     if (drawing_) {
-      // Draw current selection
       cv::rectangle(image, start_point_, end_point_, cv::Scalar(255, 0, 0), 2);
-    } else if (roi_complete_) {
-      // Draw completed ROI
+    } else if (!current_roi_.empty()) {
       cv::rectangle(image, current_roi_, cv::Scalar(0, 255, 0), 2);
     }
   }
 
   bool is_roi_complete() { return roi_complete_; }
 
-  cv::Rect get_roi() { return current_roi_; }
+  std::optional<cv::Rect> get_roi()
+  {
+    if (roi_complete_) {
+      roi_complete_ = false;
+      return current_roi_;
+    } else {
+      return std::nullopt;
+    }
+  }
 
   void reset()
   {
     drawing_ = false;
     roi_complete_ = false;
+    current_roi_ = cv::Rect();
   }
 };
