@@ -16,6 +16,7 @@ public:
   double get_min_score();
   double get_max_score();
   void draw(cv::Mat & display_image);
+  void reset();
 
 private:
   double width_ratio_;

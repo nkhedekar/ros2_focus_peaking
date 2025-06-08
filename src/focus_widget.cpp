@@ -105,4 +105,6 @@ void FocusWidget::draw(cv::Mat & display_image)
   }
 }
 
+void FocusWidget::reset() { scores_history_.clear(); }
+
 }  // namespace focus_peaking
