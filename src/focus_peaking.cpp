@@ -27,7 +27,9 @@ FocusPeaking::FocusPeaking(const rclcpp::NodeOptions & options)
   edge_dilation_kernel_size_(3),
   widget_enabled_(true),
   widget_width_ratio_(0.04),
-  focus_history_size_(200)
+  focus_history_size_(200),
+  roi_selector_("focus_peaking"),
+  roi_(std::nullopt)
 {
   RCLCPP_INFO(get_logger(), "Initializing FocusPeaking node...");
 
@@ -79,6 +81,7 @@ FocusPeaking::FocusPeaking(const rclcpp::NodeOptions & options)
 
   cv::namedWindow(viz_window_name_, cv::WINDOW_NORMAL);
   cv::resizeWindow(viz_window_name_, 800, 600);
+  roi_selector_.set_mouse_callback();
 
   RCLCPP_INFO(get_logger(), "FocusPeaking initialized");
 }
@@ -128,6 +131,17 @@ void FocusPeaking::image_callback(const sensor_msgs::msg::Image::ConstSharedPtr 
 
   // --- Focus Widget Logic ---
   if (widget_enabled_) {
+    auto new_roi = roi_selector_.get_roi();
+    if (new_roi.has_value()) {
+      roi_ = new_roi.value();
+      focus_widget_->reset();
+      RCLCPP_INFO(get_logger(), "New ROI selected");
+    }
+    if (roi_.has_value()) {
+      auto & roi = roi_.value();
+      focus_widget_input = focus_widget_input(roi);
+      RCLCPP_INFO(get_logger(), "ROI: x:%d, y:%d, w:%d, h:%d", roi.x, roi.y, roi.width, roi.height);
+    }
     double current_focus_score = calculate_focus_score(focus_widget_input);
 
     focus_widget_->update(current_focus_score);
@@ -139,11 +153,18 @@ void FocusPeaking::image_callback(const sensor_msgs::msg::Image::ConstSharedPtr 
       get_logger(), "Focus Score: %.2f (Min: %.2f, Max: %.2f)", current_focus_score, min_hist_score,
       max_hist_score);
 
+    roi_selector_.draw(result_display_img);
     focus_widget_->draw(result_display_img);
   }
 
   cv::imshow(viz_window_name_, result_display_img);
-  cv::waitKey(1);
+  char key = cv::waitKey(1) & 0xFF;
+  if (key == 'r') {
+    RCLCPP_INFO(get_logger(), "Resetting Focus Peaking");
+    roi_selector_.reset();
+    focus_widget_->reset();
+    roi_.reset();
+  }
 }
 
 }  // namespace focus_peaking

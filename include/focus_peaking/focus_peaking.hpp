@@ -3,10 +3,12 @@
 
 #include <memory>
 #include <opencv2/core/mat.hpp>
+#include <optional>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
 
 #include "focus_peaking/focus_widget.hpp"
+#include "focus_peaking/roi_selector.hpp"
 
 namespace focus_peaking
 {
@@ -29,6 +31,8 @@ private:
   double widget_width_ratio_;
   size_t focus_history_size_;
   std::unique_ptr<FocusWidget> focus_widget_;
+  ROISelector roi_selector_;
+  std::optional<cv::Rect> roi_;
 };
 }  // namespace focus_peaking
 
