@@ -8,6 +8,8 @@
 #include <opencv2/imgproc.hpp>
 #include <vector>
 
+#include "std_msgs/msg/header.hpp"
+
 namespace focus_peaking
 {
 
@@ -78,6 +80,8 @@ FocusPeaking::FocusPeaking(const rclcpp::NodeOptions & options)
   image_sub_ = create_subscription<sensor_msgs::msg::Image>(
     "/image_raw", 5,
     [&](const sensor_msgs::msg::Image::ConstSharedPtr & msg) { image_callback(msg); });
+
+  metrics_pub_ = create_publisher<focus_peaking_interfaces::msg::FocusMetrics>("/focus_metrics", 5);
 
   cv::namedWindow(viz_window_name_, cv::WINDOW_NORMAL);
   cv::resizeWindow(viz_window_name_, 800, 600);
@@ -152,6 +156,15 @@ void FocusPeaking::image_callback(const sensor_msgs::msg::Image::ConstSharedPtr 
     RCLCPP_INFO(
       get_logger(), "Focus Score: %.2f (Min: %.2f, Max: %.2f)", current_focus_score, min_hist_score,
       max_hist_score);
+
+    focus_peaking_interfaces::msg::FocusMetrics focus_metrics_msg;
+    std_msgs::msg::Header header = msg->header;
+    focus_metrics_msg.header = header;
+    focus_metrics_msg.current_score = current_focus_score;
+    focus_metrics_msg.min_score = min_hist_score;
+    focus_metrics_msg.max_score = max_hist_score;
+    focus_metrics_msg.window_size = focus_history_size_;
+    metrics_pub_->publish(focus_metrics_msg);
 
     roi_selector_.draw(result_display_img);
     focus_widget_->draw(result_display_img);

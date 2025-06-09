@@ -11,7 +11,9 @@
 
   <depend>rclcpp</depend>
   <depend>rclcpp_components</depend>
+  <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
+  <depend>focus_peaking_interfaces</depend>
   <depend>cv_bridge</depend>
   <depend>OpenCV</depend>
 
