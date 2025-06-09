@@ -11,9 +11,15 @@ Sharp edges are highlighted in the viewing window which enables the user to dete
 
 ## Parameters
 
-**denoising_kernel_size** *(int64)*: Size of kernel used to apply gaussian blur on the image before edge detection. A larger value will denoise the image and only the sharpest edges will be visible. *(default: 3)*
+**denoising_kernel_size** *(int)*: Size of gaussian blur kernel used for denoising. Must be odd and positive. *(default: 3)*
 
-**dilation_kernel_size** *(int64)*: Size of kernel used to dilate the edges for better visibility in the visualisation window. *(default: 3)*
+**edge_dilation_kernel_size** *(int)*: Size of kernel used to dilate detected edges for peaking. Must be positive. *(default: 3)*
+
+**widget_enabled** *(bool)*: Enable focus quality widget. *(default: true)*
+
+**widget_width_ratio** *(double)*: Widget width as a ratio of image width (0.0 to 1.0). *(default: 0.04)*
+
+**focus_history_size** *(int)*: Number of frames for focus score history (min 1). *(default: 200)*
 
 ## Build
 
@@ -42,6 +48,7 @@ ros2 launch focus_peaking focus_peaking.launch.py
 ```
 
 Launch demo with builtin laptop webcam.
+> __NOTE__: This would only show the image with the edges and widget but no lens adjustment is available so cannot actually test the capabilities. The user needs a camera with adjustable manual focus and/or aperture control.
 
 - install ros2 usb_cam [drivers](https://github.com/ros-drivers/usb_cam)
 ```bash
