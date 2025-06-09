@@ -3,7 +3,10 @@
 namespace focus_peaking
 {
 
-ROISelector::ROISelector(const std::string & win_name) : window_name_(win_name) {}
+ROISelector::ROISelector(const std::string & win_name, int min_roi_size)
+: drawing_(false), roi_complete_(false), min_roi_size_(min_roi_size), window_name_(win_name)
+{
+}
 
 void ROISelector::set_mouse_callback() { cv::setMouseCallback(window_name_, mouse_callback, this); }
 
@@ -82,4 +85,4 @@ void ROISelector::reset()
 }
 
 void ROISelector::clear_roi_callback() { roi_callback_ = nullptr; }
-}
+}  // namespace focus_peaking

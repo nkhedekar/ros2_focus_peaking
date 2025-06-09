@@ -11,16 +11,17 @@ namespace focus_peaking
 class ROISelector
 {
 private:
-  cv::Point start_point_, end_point_;
-  bool drawing_ = false;
-  bool roi_complete_ = false;
-  int min_roi_size_ = 5;
+  cv::Point start_point_;
+  cv::Point end_point_;
+  bool drawing_;
+  bool roi_complete_;
+  int min_roi_size_;
   cv::Rect current_roi_;
   std::string window_name_;
   std::function<void(const cv::Rect &)> roi_callback_;
 
 public:
-  explicit ROISelector(const std::string & win_name);
+  explicit ROISelector(const std::string & win_name, int min_roi_size = 5);
 
   void set_mouse_callback();
 
