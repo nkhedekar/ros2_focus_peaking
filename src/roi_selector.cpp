@@ -8,7 +8,10 @@ ROISelector::ROISelector(const std::string & win_name, int min_roi_size)
 {
 }
 
-void ROISelector::set_mouse_callback() { cv::setMouseCallback(window_name_, mouse_callback, this); }
+void ROISelector::register_mouse_callback()
+{
+  cv::setMouseCallback(window_name_, mouse_callback, this);
+}
 
 void ROISelector::mouse_callback(int event, int x, int y, int flags, void * userdata)
 {

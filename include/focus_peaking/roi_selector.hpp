@@ -19,17 +19,15 @@ private:
   cv::Rect current_roi_;
   std::string window_name_;
   std::function<void(const cv::Rect &)> roi_callback_;
+  static void mouse_callback(int event, int x, int y, int flags, void * userdata);
+  void handle_mouse(int event, int x, int y, int flags);
 
 public:
   explicit ROISelector(const std::string & win_name, int min_roi_size = 5);
 
-  void set_mouse_callback();
-
-  static void mouse_callback(int event, int x, int y, int flags, void * userdata);
+  void register_mouse_callback();
 
   void register_roi_callback(std::function<void(const cv::Rect &)> && callback);
-
-  void handle_mouse(int event, int x, int y, int flags);
 
   void draw(cv::Mat & image);
 

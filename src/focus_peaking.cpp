@@ -81,7 +81,7 @@ FocusPeaking::FocusPeaking(const rclcpp::NodeOptions & options)
 
   cv::namedWindow(viz_window_name_, cv::WINDOW_NORMAL);
   cv::resizeWindow(viz_window_name_, 800, 600);
-  roi_selector_.set_mouse_callback();
+  roi_selector_.register_mouse_callback();
 
   roi_selector_.register_roi_callback([&](const cv::Rect & roi) {
     roi_ = roi;
