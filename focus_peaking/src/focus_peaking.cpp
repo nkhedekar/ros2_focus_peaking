@@ -83,8 +83,8 @@ FocusPeaking::FocusPeaking(const rclcpp::NodeOptions & options)
 
   metrics_pub_ = create_publisher<focus_peaking_interfaces::msg::FocusMetrics>("/focus_metrics", 5);
 
-  cv::namedWindow(viz_window_name_, cv::WINDOW_NORMAL);
-  cv::resizeWindow(viz_window_name_, 800, 600);
+  cv::namedWindow(viz_window_name_, cv::WINDOW_NORMAL | cv::WINDOW_GUI_NORMAL);
+  cv::resizeWindow(viz_window_name_, 1920, 1080);
   roi_selector_.register_mouse_callback();
 
   roi_selector_.register_roi_callback([&](const cv::Rect & roi) {
