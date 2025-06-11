@@ -86,7 +86,7 @@ void FocusWidget::draw(cv::Mat & display_image)
       // Y-coordinate for the line: top of inner rectangle for score=1.0, bottom for score=0.0
       int line_y = inner_tl.y + static_cast<int>((1.0 - normalized_score) * inner_height);
 
-      // Draw reactangle from level to bottom
+      // Draw rectangle from level to bottom
       cv::rectangle(
         display_image, cv::Point(inner_tl.x, line_y), cv::Point(inner_br.x, inner_br.y),
         cv::Scalar(172, 92, 14), cv::FILLED);
