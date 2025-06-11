@@ -74,9 +74,6 @@ void FocusWidget::draw(cv::Mat & display_image)
     bg_tl.x + widget_bg_width / 2, inner_y + inner_height + inner_margin + circle_radius);
   cv::circle(display_image, blur_center, circle_radius, cv::Scalar(0, 0, 255), cv::FILLED);
 
-  // Draw the inner widget rectangle with black border
-  cv::rectangle(display_image, inner_rect, cv::Scalar(0, 0, 0), 3);
-
   // Draw the red focus indicator line inside the inner rectangle
   if (!scores_history_.empty()) {
     double current_score = scores_history_.back();
@@ -89,11 +86,10 @@ void FocusWidget::draw(cv::Mat & display_image)
       // Y-coordinate for the line: top of inner rectangle for score=1.0, bottom for score=0.0
       int line_y = inner_tl.y + static_cast<int>((1.0 - normalized_score) * inner_height);
 
-      // Draw red line across the width of the inner widget
-      cv::line(
-        display_image, cv::Point(inner_tl.x + 5, line_y), cv::Point(inner_br.x - 5, line_y),
-        cv::Scalar(0, 0, 255),
-        3);  // Red line
+      // Draw reactangle from level to bottom
+      cv::rectangle(
+        display_image, cv::Point(inner_tl.x, line_y), cv::Point(inner_br.x, inner_br.y),
+        cv::Scalar(172, 92, 14), cv::FILLED);
     } else {
       // If min_score_ is very close to max_score_, draw gray line in the middle
       int line_y = inner_tl.y + inner_height / 2;
@@ -103,6 +99,9 @@ void FocusWidget::draw(cv::Mat & display_image)
         2);  // Gray line
     }
   }
+
+  // Draw the inner widget rectangle with black border
+  cv::rectangle(display_image, inner_rect, cv::Scalar(0, 0, 0), 3);
 }
 
 void FocusWidget::reset() { scores_history_.clear(); }
