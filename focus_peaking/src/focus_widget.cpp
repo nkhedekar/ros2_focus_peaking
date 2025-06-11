@@ -90,6 +90,17 @@ void FocusWidget::draw(cv::Mat & display_image)
       cv::rectangle(
         display_image, cv::Point(inner_tl.x, line_y), cv::Point(inner_br.x, inner_br.y),
         cv::Scalar(172, 92, 14), cv::FILLED);
+
+      // if score below half of normalized score then draw a red line, green if above
+      if (normalized_score < 0.5) {
+        cv::line(
+          display_image, cv::Point(inner_tl.x, line_y), cv::Point(inner_br.x, line_y),
+          cv::Scalar(0, 0, 255), 3);
+      } else {
+        cv::line(
+          display_image, cv::Point(inner_tl.x, line_y), cv::Point(inner_br.x, line_y),
+          cv::Scalar(0, 255, 0), 3);
+      }
     } else {
       // If min_score_ is very close to max_score_, draw gray line in the middle
       int line_y = inner_tl.y + inner_height / 2;
