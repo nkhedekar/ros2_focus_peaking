@@ -15,5 +15,5 @@ float64 max_score
 # window size for focus score history
 int32 window_size
 
-# region of interest
+# metric calculated on this ROI, values 0 and do_rectify=false if no ROI selected
 sensor_msgs/RegionOfInterest roi
