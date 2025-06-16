@@ -2,40 +2,74 @@
 
 ## Overview
 
-This package is a helper for setting up lenses on machine vision cameras and testing image sharpness.
-Sharp edges are highlighted in the viewing window, enabling the user to determine the quality of focus and the target of focus in the scene.
-A widget on the right side of the image provides a quantitative measure of focus quality. The focus score for this widget can be calculated from the full image or a user-defined Region of Interest (ROI), which can be selected interactively.
+This ROS 2 package assists in manually focusing lenses on machine vision cameras and evaluating image sharpness. It highlights sharp edges directly in the image display, allowing users to visually determine focus quality and identify which parts of the scene are in focus. An accompanying widget provides a quantitative focus quality score, calculated either from the full image or a user-defined Region of Interest (ROI) that can be selected interactively by clicking and dragging.
 
-## Demo
+![demo image](images/focus_peaking_demo.png)
 
-### Requirements
+## Features
+*   **Visual Focus Aid:** Highlights sharp edges in real-time.
+*   **Quantitative Sharpness Score:** Provides a numerical metric for focus quality.
+*   **Interactive ROI Selection:** Allows focusing on specific areas of interest.
+*   **Focus History:** The sharpness score considers a history of frames (configurable via `focus_history_size` parameter) to provide a stable peak reading, mitigating temporary fluctuations (e.g., minor lighting changes).
 
-- Camera with a manually adjustable focus (and aperture) ring. eg: [raspberry pi camera](https://www.raspberrypi.com/products/raspberry-pi-high-quality-camera/) with c/cs mount lens.
-- ROS2 drivers for the camera which can publish a raw image.
-- Steady lighting conditions.
+## Video Demonstration
 
-### Setup
+A full video demonstrating the setup process and the tool in action is available here:
+[![Watch the video](https://img.youtube.com/vi/Wy3PcOUVC_Y/maxresdefault.jpg)](https://youtu.be/Wy3PcOUVC_Y)
 
-1. Setup the camera on a steady mount.
-2. Connect the camera to the computer, launch drivers and ensure the camera is publishing raw images in ROS2.
-    ```bash
-    ros2 topic list
-    ```
-3. Ensure an object or surface with enough texture is available to focus the lens at the desired distance.
-4. If possible set the auto gain and auto exposure of the camera to off, also set a fixed exposure and gain value. Changing brightness can interfere with the sharpness indicator metric, it is still possible to set the focus but the lighting should be reasonably steady.
-5. Poor lighting can give unstable results for the sharpness indicator. the Laplacian metric used here is sensitive to noise.
-6. Launch the focus peaking node as shown in sections below, remap topics and adjust parameters as necessary.
-7. Adjust the aperture first to a desired level.
-8. Then adjust the focus till you see edges highlighted in the image or a selected region of interest (Click and drag to draw ROI).
-9. Once the edges are visible then adjust the focus knob till the sharpness indicator shows the peak, the peak is calculated from the last *focus_history_size*(parameter) frames, this ensures any changes in lighting do not affect the overall metric value instead it is cleared up in time.
+## Usage
 
-![Camera setup](images/camera_setup.png)
+This section guides you through setting up your camera and using the focus peaking tool.
 
-For this particular setup, a FLIR machine vision USB camera is used with a C mount lens, the lens has aperture and focus knobs. The camera is mounted on a tripod with objects in the FOV as above. I am using my own ROS2 drivers for the camera which can easily set the auto exposure and gain off and also set a fixed exposure and gain values.
+### Prerequisites
 
-## Video
+*   **Camera:** A camera with a manually adjustable focus ring (and preferably, aperture ring).
+    *   *Example:* [Raspberry Pi High Quality Camera](https://www.raspberrypi.com/products/raspberry-pi-high-quality-camera/) with C/CS mount lenses.
+*   **ROS 2 Drivers:** Functional ROS 2 drivers for your camera that publish raw image data (e.g., topics of type `sensor_msgs/Image`).
+*   **Stable Mounting:** A steady mount for the camera to prevent movement during focusing.
+*   **Textured Target:** An object or surface with sufficient texture or detail at the desired focusing distance.
 
-Full demo video is available [here](https://www.youtube.com/watch?v=9Y9o7xvMw6A)
+### Setup and Launch
+
+1.  **Mount Camera:** Securely mount your camera.
+2.  **Connect and Verify Camera:**
+    *   Connect the camera to your computer.
+    *   Launch the camera's ROS 2 drivers.
+    *   Confirm that raw images are being published by checking the available topics:
+        ```bash
+        ros2 topic list
+        ```
+        (Look for a topic like `/image_raw` or similar, depending on your camera driver).
+3.  **Position Target:** Place your textured target object in the camera's field of view at the desired focusing distance.
+4.  **Launch Focus Peaking Node:**
+    Start the focus peaking node. You'll likely need to remap the `image` topic to your camera's raw image topic and adjust parameters as needed. See launch details in sections below.
+
+### Focusing Procedure
+
+1.  **Adjust Aperture (if available):** Set your lens aperture to the desired F-stop. A wider aperture (smaller F-number) results in a shallower depth of field, making critical focus more apparent but also harder to achieve.
+2.  **Rough Focus & ROI Selection (Optional):**
+    *   Begin adjusting the focus ring. You should see edges in the image start to be highlighted.
+    *   If you want to focus on a specific area, click and drag on the image display window to draw a Region of Interest (ROI). The sharpness score will then be calculated only for this region.
+3.  **Fine-Tune Focus:**
+    *   Carefully adjust the focus ring back and forth.
+    *   Observe the highlighted edges becoming sharper and more prominent in the areas you want in focus.
+    *   Simultaneously, watch the sharpness indicator widget. Adjust the focus to maximize this score.
+    *   The peak score is determined using the last `focus_history_size` frames. This helps find a stable maximum even with slight environmental variations. Continue adjusting until the indicator shows a clear peak.
+
+### Important Considerations for Best Results
+
+*   **Lighting:**
+    *   **Steady Conditions:** Aim for consistent lighting. Fluctuations in brightness can affect the sharpness score.
+    *   **Sufficient Light:** Poor lighting can lead to noisy images, and the Laplacian filter used for edge detection is sensitive to noise, potentially giving unstable sharpness readings.
+*   **Camera Settings:**
+    *   **Disable Auto Functions:** If possible, turn OFF auto-exposure and auto-gain on your camera.
+    *   **Fixed Values:** Set fixed exposure and gain values. This ensures that changes in the sharpness metric are due to focus adjustments, not the camera's automatic adjustments to brightness.
+
+### Example Setup
+
+The image below shows a typical setup using a FLIR (Point Grey) Blackfly S USB machine vision camera with a C-mount lens (featuring manual aperture and focus rings). The camera is on a tripod, viewing various textured objects. Custom ROS 2 drivers are used, allowing manual control over exposure and gain settings, which are disabled for optimal focus peaking.
+
+![FLIR USB camera with C-mount lens on a tripod, viewing textured objects for focus peaking.](images/camera_setup.png)
 
 ## Subscribed topics
 
@@ -43,7 +77,7 @@ Full demo video is available [here](https://www.youtube.com/watch?v=9Y9o7xvMw6A)
 
 ## Published topics
 
-**/focus_metrics** *(focus_peaking_interfaces::msg::FocusMetrics)*: Focus quality metric calculated as variance of laplacian of the image.
+**/focus_metrics** *(focus_peaking_interfaces::msg::FocusMetrics)*: Focus quality metric calculated as variance of laplacian of the image. This could be further used to develop auto focus algorithms for the specific camera.
 
 ## Interfaces
 
