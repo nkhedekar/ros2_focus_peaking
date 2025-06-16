@@ -9,6 +9,7 @@
 
 #include "focus_peaking/focus_widget.hpp"
 #include "focus_peaking/roi_selector.hpp"
+#include "focus_peaking_interfaces/msg/focus_metrics.hpp"
 
 namespace focus_peaking
 {
@@ -23,6 +24,7 @@ public:
 
 private:
   std::shared_ptr<rclcpp::Subscription<sensor_msgs::msg::Image>> image_sub_;
+  std::shared_ptr<rclcpp::Publisher<focus_peaking_interfaces::msg::FocusMetrics>> metrics_pub_;
 
   std::string viz_window_name_;
   int64_t denoising_kernel_size_;

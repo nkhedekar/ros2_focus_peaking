@@ -10,6 +10,8 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(focus_peaking_interfaces REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
 
@@ -31,6 +33,7 @@ set(focus_peaking_dependencies
   rclcpp_components
   sensor_msgs
   cv_bridge
+  focus_peaking_interfaces
 )
 
 ament_target_dependencies(focus_peaking_component

@@ -10,6 +10,16 @@ A widget on the right side of the image provides a quantitative measure of focus
 
 **/image_raw** *(sensor_msgs::Image)*: Image topic published directly from the camera without any processing.
 
+## Published topics
+
+**/focus_metrics** *(focus_peaking_interfaces::msg::FocusMetrics)*: Focus quality metric calculated as variance of laplacian of the image.
+
+## Interfaces
+
+### Messages
+
+**focus_peaking_interfaces::msg::FocusMetrics**: Focus quality metric described in the [FocusMetrics.msg](focus_peaking_interfaces/msg/FocusMetrics.msg) file
+
 ## Parameters
 
 **denoising_kernel_size** *(int)*: Size of gaussian blur kernel used for denoising. Must be odd and positive. *(default: 3)*

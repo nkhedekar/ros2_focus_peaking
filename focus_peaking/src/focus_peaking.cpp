@@ -8,6 +8,9 @@
 #include <opencv2/imgproc.hpp>
 #include <vector>
 
+#include "sensor_msgs/msg/region_of_interest.hpp"
+#include "std_msgs/msg/header.hpp"
+
 namespace focus_peaking
 {
 
@@ -79,8 +82,10 @@ FocusPeaking::FocusPeaking(const rclcpp::NodeOptions & options)
     "/image_raw", 5,
     [&](const sensor_msgs::msg::Image::ConstSharedPtr & msg) { image_callback(msg); });
 
-  cv::namedWindow(viz_window_name_, cv::WINDOW_NORMAL);
-  cv::resizeWindow(viz_window_name_, 800, 600);
+  metrics_pub_ = create_publisher<focus_peaking_interfaces::msg::FocusMetrics>("/focus_metrics", 5);
+
+  cv::namedWindow(viz_window_name_, cv::WINDOW_NORMAL | cv::WINDOW_GUI_NORMAL);
+  cv::resizeWindow(viz_window_name_, 1920, 1080);
   roi_selector_.register_mouse_callback();
 
   roi_selector_.register_roi_callback([&](const cv::Rect & roi) {
@@ -152,6 +157,27 @@ void FocusPeaking::image_callback(const sensor_msgs::msg::Image::ConstSharedPtr 
     RCLCPP_INFO(
       get_logger(), "Focus Score: %.2f (Min: %.2f, Max: %.2f)", current_focus_score, min_hist_score,
       max_hist_score);
+
+    focus_peaking_interfaces::msg::FocusMetrics focus_metrics_msg;
+    focus_metrics_msg.header = msg->header;
+    focus_metrics_msg.current_score = current_focus_score;
+    focus_metrics_msg.min_score = min_hist_score;
+    focus_metrics_msg.max_score = max_hist_score;
+    focus_metrics_msg.window_size = focus_history_size_;
+    sensor_msgs::msg::RegionOfInterest roi_msg;
+    if (roi_.has_value()) {
+      auto & roi = roi_.value();
+      roi_msg.x_offset = roi.x;
+      roi_msg.y_offset = roi.y;
+      roi_msg.height = roi.height;
+      roi_msg.width = roi.width;
+      roi_msg.do_rectify = true;
+      focus_metrics_msg.roi = roi_msg;
+    } else {
+      roi_msg.do_rectify = false;
+      focus_metrics_msg.roi = roi_msg;
+    }
+    metrics_pub_->publish(focus_metrics_msg);
 
     roi_selector_.draw(result_display_img);
     focus_widget_->draw(result_display_img);
