@@ -14,3 +14,6 @@ float64 max_score
 
 # window size for focus score history
 int32 window_size
+
+# region of interest
+sensor_msgs/RegionOfInterest roi
