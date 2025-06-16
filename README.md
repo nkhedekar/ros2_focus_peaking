@@ -6,6 +6,37 @@ This package is a helper for setting up lenses on machine vision cameras and tes
 Sharp edges are highlighted in the viewing window, enabling the user to determine the quality of focus and the target of focus in the scene.
 A widget on the right side of the image provides a quantitative measure of focus quality. The focus score for this widget can be calculated from the full image or a user-defined Region of Interest (ROI), which can be selected interactively.
 
+## Demo
+
+### Requirements
+
+- Camera with a manually adjustable focus (and aperture) ring. eg: [raspberry pi camera](https://www.raspberrypi.com/products/raspberry-pi-high-quality-camera/) with c/cs mount lens.
+- ROS2 drivers for the camera which can publish a raw image.
+- Steady lighting conditions.
+
+### Setup
+
+1. Setup the camera on a steady mount.
+2. Connect the camera to the computer, launch drivers and ensure the camera is publishing raw images in ROS2.
+    ```bash
+    ros2 topic list
+    ```
+3. Ensure an object or surface with enough texture is available to focus the lens at the desired distance.
+4. If possible set the auto gain and auto exposure of the camera to off, also set a fixed exposure and gain value. Changing brightness can interfere with the sharpness indicator metric, it is still possible to set the focus but the lighting should be reasonably steady.
+5. Poor lighting can give unstable results for the sharpness indicator. the Laplacian metric used here is sensitive to noise.
+6. Launch the focus peaking node as shown in sections below, remap topics and adjust parameters as necessary.
+7. Adjust the aperture first to a desired level.
+8. Then adjust the focus till you see edges highlighted in the image or a selected region of interest (Click and drag to draw ROI).
+9. Once the edges are visible then adjust the focus knob till the sharpness indicator shows the peak, the peak is calculated from the last *focus_history_size*(parameter) frames, this ensures any changes in lighting do not affect the overall metric value instead it is cleared up in time.
+
+![Camera setup](images/camera_setup.png)
+
+For this particular setup, a FLIR machine vision USB camera is used with a C mount lens, the lens has aperture and focus knobs. The camera is mounted on a tripod with objects in the FOV as above. I am using my own ROS2 drivers for the camera which can easily set the auto exposure and gain off and also set a fixed exposure and gain values.
+
+## Video
+
+Full demo video is available [here](https://www.youtube.com/watch?v=9Y9o7xvMw6A)
+
 ## Subscribed topics
 
 **/image_raw** *(sensor_msgs::Image)*: Image topic published directly from the camera without any processing.
