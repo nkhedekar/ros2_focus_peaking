@@ -1,7 +1,7 @@
 #include "focus_peaking/focus_peaking.hpp"
 
 #include <algorithm>
-#include <cv_bridge/cv_bridge.hpp>
+#include <cv_bridge/cv_bridge.h>
 #include <deque>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
